@@ -18,26 +18,32 @@ public class ForegroundService extends Service {
 
     public static final String CHANNEL_ID = "ForegroundServiceChannel";
 
+    private boolean isServiceStarted = false;
+
     @Override
     public void onCreate() {
         super.onCreate();
     }
 
+    /**
+     * Override this method to start your tasks, maybe in a thread
+     */
+    public void startJob() {
+
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        createNotificationChannel();
-
-        startForeground(NOTIF_ID, getNotification("Native Thread running!"));
-
-        Log.v(TAG, "Foreground Service started");
-
-        while (!CallbacksToNative.isThreadStopped()) {
-
+        if (!isServiceStarted) {
+            createNotificationChannel();
+            startForeground(NOTIF_ID, getNotification("Native Thread running!"));
+            isServiceStarted = true;
+            Log.v(TAG, "Foreground Service started");
         }
 
-        Log.v(TAG, "Foreground Service stopped");
+        startJob();
 
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
 
     private Notification getNotification(String text) {
@@ -57,6 +63,7 @@ public class ForegroundService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        isServiceStarted = false;
     }
 
     @Nullable
